@@ -73,48 +73,51 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
         return 0;
     }
 
-
-    if(minor == 0)
+    switch(minor)
     {
-        for(i = 0; i < 576; i++)
-        {
-            value = bram_a[i];
-            len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-                    
-            ret = copy_to_user(buffer, buff, len);
-        
-        }
+        case 0:
 
-        if(ret)
-        {
-            return -EFAULT;
-        }
+            for(i = 0; i < 576; i++)
+            {
+                value = bram_a[i];
+                len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
 
-        printk("MINOR 0 read\n");
+                ret = copy_to_user(buffer, buff, len);
+
+            }
+
+            if(ret)
+            {
+                return -EFAULT;
+            }
+
+            printk("MINOR 0 read\n");
+
+        break;
+
+        case 1:
+
+            for(i = 0; i < 576; i++)
+            {
+                value = bram_a[i];
+                len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
+
+                ret = copy_to_user(buffer, buff, len);
+            }
+
+            if(ret)
+            {
+                return -EFAULT;
+            }
+
+            printk("MINOR 1 read\n");
+
+        break;
+
+        default:
+            printk("Something went wrong\n");
 
     }
-
-    if(minor == 1)
-    {
-        for(i = 0; i < 576; i++)
-        {
-            value = bram_a[i];
-            len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
-                    
-            ret = copy_to_user(buffer, buff, len);
-        }
-
-        if(ret)
-        {
-            return -EFAULT;
-        }
-
-        printk("MINOR 1 read\n");
-
-    }
-
-            printk("vrednost len: %d\n", len);
-
 
     return len;
 
@@ -129,7 +132,7 @@ ssize_t imdct_write(struct file *pfile, const char __user *buffer, size_t length
     int minor;
     int size_of_buff;
 
-    printk("IMDCT write\n");
+    printk("IMDCT wrote\n");
     
     minor = MINOR(pfile->f_inode->i_rdev);
 
