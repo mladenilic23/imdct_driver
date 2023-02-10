@@ -19,15 +19,15 @@ MODULE_DESCRIPTION("Test Driver for IMDCT.");
 
 
 int endRead = 0;
-int bram_a[576]
+int bram_a[576];
 
 
-static int IMDCT_open(struct inode *i, struct file *f);
-static int IMDCT_close(struct inode *i, struct file *f);
-static ssize_t IMDCT_read(struct file *f, char __user *buffer, size_t length, loff_t *offset);
-static ssize_t IMDCT_write(struct file *f, const char __user *buffer, size_t length, loff_t *offset);
-static int __init IMDCT_init(void);
-static void __exit IMDCT_exit(void);
+static int imdct_open(struct inode *i, struct file *f);
+static int imdct_close(struct inode *i, struct file *f);
+static ssize_t imdct_read(struct file *f, char __user *buffer, size_t length, loff_t *offset);
+static ssize_t imdct_write(struct file *f, const char __user *buffer, size_t length, loff_t *offset);
+static int __init imdct_init(void);
+static void __exit imdct_exit(void);
 
 dev_t my_dev_id;
 static struct class *my_class;
@@ -58,8 +58,10 @@ static int imdct_close(struct inode *i, struct file *f)
 ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_t *offset) 
 {
 
-    int ret, len;
-    char buff[BUFF_SIZE]
+    int ret;
+    int len;
+    int i = 0;
+    char buff[BUFF_SIZE];
     int value;
     int minor = MINOR(pfile->f_inode->i_rdev);
 	
@@ -72,7 +74,7 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
 
     if(minor == 0)
     {
-        for(i = 0; i < 576, i++)
+        for(i = 0; i < 576; i++)
         {
             value = bram_a[i];
             len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
@@ -85,13 +87,13 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
             return -EFAULT;
         }
 
-        printk("MINOR 0 read\n")
+        printk("MINOR 0 read\n");
 
     }
 
     if(minor == 1)
     {
-        for(i = 0; i < 576, i++)
+        for(i = 0; i < 576; i++)
         {
             value = bram_a[i];
             len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
@@ -104,7 +106,7 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
             return -EFAULT;
         }
 
-        printk("MINOR 1 read\n")
+        printk("MINOR 1 read\n");
 
     }
 
@@ -121,7 +123,7 @@ ssize_t imdct_write(struct file *pfile, const char __user *buffer, size_t length
 
 
     printk("IMDCT write\n");
-    int minor = MINOR(f->f_inode->i_rdev)
+    int minor = MINOR(pfile->f_inode->i_rdev);
 
     int size_of_buff = sizeof(buff)/sizeof(buff[0]);
 
@@ -232,5 +234,5 @@ static void __exit imdct_exit(void)
   printk(KERN_INFO "IMDCT driver closed.\n");
 }
 
-module_init(IMDCT_init);
-module_exit(IMDCT_exit);
+module_init(imdct_init);
+module_exit(imdct_exit);
