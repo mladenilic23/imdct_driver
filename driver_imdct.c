@@ -43,13 +43,13 @@ struct file_operations my_fops =
 	.release = imdct_close,
 };
 
-static int imdct_open(struct inode *i, struct file *f)
+static int imdct_open(struct inode *i, struct file *pfile)
 {
   printk(KERN_INFO "IMDCT opened\n");
   return 0;
 }
 
-static int imdct_close(struct inode *i, struct file *f)
+static int imdct_close(struct inode *i, struct file *pfile)
 {
   printk(KERN_INFO "IMDCT closed\n");
   return 0;
