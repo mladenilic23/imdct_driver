@@ -80,6 +80,7 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
             len = scnprintf(buff, BUFF_SIZE, "%d\n", value);
                     
             ret = copy_to_user(buffer, buff, len);
+        
         }
 
         if(ret)
@@ -109,6 +110,9 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
         printk("MINOR 1 read\n");
 
     }
+
+            printk("vrednost len: %d\n", len);
+
 
     return len;
 
@@ -179,32 +183,39 @@ static int __init imdct_init(void)
     }
     printk(KERN_INFO "class created\n");
 
-    if (device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 0), NULL, "bram_a") == NULL)
+    my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 0), NULL, "bram_a");
+    if (my_device == NULL)
     {
         printk(KERN_ERR "failed to create device\n");
         goto fail_1;
     }
     printk(KERN_INFO "device created bram_a\n");
 
-    if (device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 1), NULL, "bram_b") == NULL)
+    my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 1), NULL, "bram_b");
+    if (my_device == NULL)
     {
         printk(KERN_ERR "failed to create device\n");
         goto fail_1;
     }
     printk(KERN_INFO "device created bram_b\n");
 
-    if (device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 2), NULL, "IMDCT") == NULL)
+    my_device = device_create(my_class, NULL, MKDEV(MAJOR(my_dev_id), 2), NULL, "imdct");
+    if (my_device == NULL)
     {
         printk(KERN_ERR "failed to create device\n");
         goto fail_1;
     }
-    printk(KERN_INFO "device created IMDCT\n");
+    printk(KERN_INFO "imdct device created\n");
 
     my_cdev = cdev_alloc();
 	my_cdev->ops = &my_fops;
 	my_cdev->owner = THIS_MODULE;
 
-    if (cdev_add(my_cdev, my_dev_id, 3) == -1)  
+    ret = cdev_add(my_cdev, my_dev_id, 3);
+
+    return platform_driver_register(&driver_imdct);
+
+    if (ret)  
 	{
         printk(KERN_ERR "failed to add cdev\n");
 		goto fail_2;
@@ -224,14 +235,23 @@ static int __init imdct_init(void)
 
 static void __exit imdct_exit(void)
 {
-  cdev_del(my_cdev);
-  device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
-  device_destroy(my_class, MKDEV(MAJOR(my_dev_id),1));
-  device_destroy(my_class, MKDEV(MAJOR(my_dev_id),2));
-  device_destroy(my_class, MKDEV(MAJOR(my_dev_id),3));
-  class_destroy(my_class);
-  unregister_chrdev_region(my_dev_id, 1);
-  printk(KERN_INFO "IMDCT driver closed.\n");
+
+    printk(KERN_ALERT "imdct_exit: rmmod called\n");
+	platform_driver_unregister(&driver_imdct);
+	printk(KERN_INFO"imdct_exit: platform_driver_unregister done\n");
+	cdev_del(my_cdev);
+	printk(KERN_ALERT "imdct_exit: cdev_del done\n");
+	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
+	printk(KERN_INFO"imdct_exit: device destroy 0\n");
+	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),1));
+	printk(KERN_INFO"imdct_exit: device destroy 1\n");
+	device_destroy(my_class, MKDEV(MAJOR(my_dev_id),2));
+	printk(KERN_INFO"imdct_exit: device destroy 2\n");
+	class_destroy(my_class);
+	printk(KERN_INFO"imdct_exit: class destroy \n");
+	unregister_chrdev_region(my_dev_id,3);
+	printk(KERN_ALERT "Goodbye from driver_imdct\n");	
+
 }
 
 module_init(imdct_init);
