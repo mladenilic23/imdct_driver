@@ -63,7 +63,9 @@ ssize_t imdct_read(struct file *pfile, char __user *buffer, size_t length, loff_
     int i = 0;
     char buff[BUFF_SIZE];
     int value;
-    int minor = MINOR(pfile->f_inode->i_rdev);
+    int minor;
+
+    minor = MINOR(pfile->f_inode->i_rdev);
 	
     if (endRead == 1)
     {
@@ -123,13 +125,15 @@ ssize_t imdct_write(struct file *pfile, const char __user *buffer, size_t length
 
     int ret;
     char buff[BUFF_SIZE];
-    int value;
-
+    //int value;
+    int minor;
+    int size_of_buff;
 
     printk("IMDCT write\n");
-    int minor = MINOR(pfile->f_inode->i_rdev);
+    
+    minor = MINOR(pfile->f_inode->i_rdev);
 
-    int size_of_buff = sizeof(buff)/sizeof(buff[0]);
+    size_of_buff = sizeof(buff)/sizeof(buff[0]);
 
     if(ret)
     {
@@ -213,8 +217,6 @@ static int __init imdct_init(void)
 
     ret = cdev_add(my_cdev, my_dev_id, 3);
 
-    return platform_driver_register(&driver_imdct);
-
     if (ret)  
 	{
         printk(KERN_ERR "failed to add cdev\n");
@@ -236,6 +238,14 @@ static int __init imdct_init(void)
 static void __exit imdct_exit(void)
 {
 
+    cdev_del(my_cdev);
+    device_destroy(my_class, MKDEV(MAJOR(my_dev_id),0));
+    device_destroy(my_class, MKDEV(MAJOR(my_dev_id),1));
+    device_destroy(my_class, MKDEV(MAJOR(my_dev_id),2));
+    class_destroy(my_class);
+    unregister_chrdev_region(my_dev_id, 3);
+    printk(KERN_INFO "IMDCT driver closed.\n");
+/*
     printk(KERN_ALERT "imdct_exit: rmmod called\n");
 	platform_driver_unregister(&driver_imdct);
 	printk(KERN_INFO"imdct_exit: platform_driver_unregister done\n");
@@ -251,7 +261,7 @@ static void __exit imdct_exit(void)
 	printk(KERN_INFO"imdct_exit: class destroy \n");
 	unregister_chrdev_region(my_dev_id,3);
 	printk(KERN_ALERT "Goodbye from driver_imdct\n");	
-
+*/
 }
 
 module_init(imdct_init);
